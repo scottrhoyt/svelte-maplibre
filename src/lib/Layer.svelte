@@ -288,21 +288,15 @@
     layer.value
       ? diffApplier((key, value) => {
           if (!map) return;
-          // maplibre-gl v6 strictly types setPaintProperty's (name, value) pair via
-          // a generic over AllPaintProperties; the diff applier is intentionally
-          // structural, so the value can be any element of the paint object.
-          // .bind preserves the Map receiver — setPaintProperty reads
-          // `this.style` internally.
-          const setPaint = map.setPaintProperty.bind(map) as (
-            id: string,
-            name: string,
-            value: unknown
-          ) => void;
-          if (map.style._loaded) {
-            setPaint(layer.value!, key, value);
-          } else {
-            map.once('styledata', () => setPaint(layer.value!, key, value));
-          }
+          // maplibre-gl v6 strictly types setPaintProperty's (name, value) pair
+          // via a generic over AllPaintProperties; the diff applier is
+          // intentionally structural, so the value here can be any element of
+          // the paint object. The runtime call must stay on `map` so the
+          // method's internal `this.style` access keeps working.
+          // @ts-expect-error v6 generic narrows the value to `never` here
+          if (map.style._loaded) map.setPaintProperty(layer.value!, key, value);
+          // @ts-expect-error see above
+          else map.once('styledata', () => map.setPaintProperty(layer.value!, key, value));
         })
       : void 0
   );
@@ -310,16 +304,10 @@
     layer.value
       ? diffApplier((key, value) => {
           if (!map) return;
-          const setLayout = map.setLayoutProperty.bind(map) as (
-            id: string,
-            name: string,
-            value: unknown
-          ) => void;
-          if (map.style._loaded) {
-            setLayout(layer.value!, key, value);
-          } else {
-            map.once('styledata', () => setLayout(layer.value!, key, value));
-          }
+          // @ts-expect-error v6 generic narrows the value to `never` here
+          if (map.style._loaded) map.setLayoutProperty(layer.value!, key, value);
+          // @ts-expect-error see above
+          else map.once('styledata', () => map.setLayoutProperty(layer.value!, key, value));
         })
       : void 0
   );
