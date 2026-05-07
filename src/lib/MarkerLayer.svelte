@@ -1,5 +1,5 @@
 <script lang="ts" generics="FEATURE extends Feature = Feature">
-  import type maplibregl from 'maplibre-gl';
+  import type * as maplibregl from 'maplibre-gl';
   import type { MapLibreZoomEvent, PointLike } from 'maplibre-gl';
   import type { Feature } from 'geojson';
   import { onDestroy } from 'svelte';

@@ -2,6 +2,7 @@
   import { getId } from './context.svelte.js';
   import Layer from './Layer.svelte';
   import type { CommonLayerProps } from './types.js';
+  import type * as maplibregl from 'maplibre-gl';
   import type { Feature } from 'geojson';
 
   interface Props extends CommonLayerProps<FEATURE> {

@@ -1,13 +1,13 @@
 import type { Feature, Point } from 'geojson';
-import {
-  type LngLatBoundsLike,
-  type MapGeoJSONFeature,
-  type MapLibreEvent,
-  type MapMouseEvent,
-  type Marker,
+import type {
+  LngLatBoundsLike,
+  MapGeoJSONFeature,
+  MapLibreEvent,
+  MapMouseEvent,
+  Marker,
 } from 'maplibre-gl';
-import MapLibre from 'maplibre-gl';
-const { LngLatBounds, LngLat } = MapLibre;
+import * as maplibregl from 'maplibre-gl';
+const { LngLatBounds, LngLat } = maplibregl;
 import type { Snippet } from 'svelte';
 
 export type {
@@ -138,8 +138,8 @@ function compareFloat(a: number, b: number): boolean {
 
 export function boundsEqual(
   param: LngLatBoundsLike,
-  mapBounds: MapLibre.LngLatBounds | undefined
-): { equal: boolean; bounds: MapLibre.LngLatBounds } {
+  mapBounds: maplibregl.LngLatBounds | undefined
+): { equal: boolean; bounds: maplibregl.LngLatBounds } {
   let paramBounds = LngLatBounds.convert(param);
   if (!mapBounds) {
     return { equal: false, bounds: paramBounds };
@@ -163,7 +163,7 @@ export function boundsEqual(
 }
 
 export function convertBoundsToUserFormat(
-  bounds: MapLibre.LngLatBounds,
+  bounds: maplibregl.LngLatBounds,
   param: LngLatBoundsLike | undefined
 ): LngLatBoundsLike {
   const sw = bounds.getSouthWest();

@@ -3,6 +3,7 @@
   import { getId } from './context.svelte.js';
   import Layer from './Layer.svelte';
   import type { CommonLayerProps } from './types.js';
+  import type * as maplibregl from 'maplibre-gl';
 
   interface Props extends CommonLayerProps<FEATURE> {
     paint: maplibregl.CircleLayerSpecification['paint'];

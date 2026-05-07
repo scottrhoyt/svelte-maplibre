@@ -4,10 +4,10 @@
   import { getId, getMapContext, updatedSourceContext } from './context.svelte.js';
   import { addSource, removeSource } from './source.js';
   import { flush } from '$lib/flush.js';
-  import type {
-    DEMEncoding,
-    RasterDEMTileSource as MaplibreRasterDEMTileSource,
-  } from 'maplibre-gl';
+  import type { RasterDEMTileSource as MaplibreRasterDEMTileSource } from 'maplibre-gl';
+  // DEMEncoding was an exported type in maplibre-gl v5 but is internal in v6;
+  // we inline the literal union to keep the prop API stable across both.
+  type DEMEncoding = 'mapbox' | 'terrarium' | 'custom';
 
   interface Props {
     id?: string;

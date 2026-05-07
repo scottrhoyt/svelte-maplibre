@@ -1,7 +1,7 @@
 <script lang="ts" generics="FEATURE extends Feature = Feature">
   import { flush } from '$lib/flush.js';
   import type { Feature } from 'geojson';
-  import type maplibregl from 'maplibre-gl';
+  import type * as maplibregl from 'maplibre-gl';
   import type { MapGeoJSONFeature, MapMouseEvent } from 'maplibre-gl';
   import { onDestroy } from 'svelte';
   import { diffApplier } from './compare.js';
@@ -288,10 +288,18 @@
     layer.value
       ? diffApplier((key, value) => {
           if (!map) return;
+          // maplibre-gl v6 strictly types setPaintProperty's (name, value) pair via
+          // a generic over AllPaintProperties; the diff applier is intentionally
+          // structural, so the value can be any element of the paint object.
+          const setPaint = map.setPaintProperty as (
+            id: string,
+            name: string,
+            value: unknown
+          ) => void;
           if (map.style._loaded) {
-            map.setPaintProperty(layer.value!, key, value);
+            setPaint(layer.value!, key, value);
           } else {
-            map.once('styledata', () => map.setPaintProperty(layer.value!, key, value));
+            map.once('styledata', () => setPaint(layer.value!, key, value));
           }
         })
       : void 0
@@ -300,10 +308,15 @@
     layer.value
       ? diffApplier((key, value) => {
           if (!map) return;
+          const setLayout = map.setLayoutProperty as (
+            id: string,
+            name: string,
+            value: unknown
+          ) => void;
           if (map.style._loaded) {
-            map.setLayoutProperty(layer.value!, key, value);
+            setLayout(layer.value!, key, value);
           } else {
-            map.once('styledata', () => map.setLayoutProperty(layer.value!, key, value));
+            map.once('styledata', () => setLayout(layer.value!, key, value));
           }
         })
       : void 0

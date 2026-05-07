@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { getMapContext } from './context.svelte.js';
-  import maplibregl from 'maplibre-gl';
+  import * as maplibregl from 'maplibre-gl';
   import type { MapEventType, MapLayerEventType } from 'maplibre-gl';
   import type { MapMoveEvent } from './types.js';
 

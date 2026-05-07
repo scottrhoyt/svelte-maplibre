@@ -1,10 +1,7 @@
 <script lang="ts" generics="DATA = Feature">
   import type { Feature } from 'geojson';
-  import maplibregl, {
-    type MapMouseEvent,
-    type MapLayerMouseEvent,
-    type MapLayerTouchEvent,
-  } from 'maplibre-gl';
+  import * as maplibregl from 'maplibre-gl';
+  import type { MapMouseEvent, MapLayerMouseEvent, MapLayerTouchEvent } from 'maplibre-gl';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import {
     getMapContext,

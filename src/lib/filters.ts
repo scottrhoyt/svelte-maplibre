@@ -1,4 +1,5 @@
 import type { ExpressionSpecification } from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 
 export function combineFilters(
   join: 'all' | 'any',

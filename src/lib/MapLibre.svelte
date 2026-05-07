@@ -2,13 +2,14 @@
   import { flush } from '$lib/flush.js';
   import { Box, createMapContext, setLayerEvent } from './context.svelte.js';
   import { getViewportHash, parseViewportHash } from './hash.js';
-  import maplibre, {
-    type CenterZoomBearing,
-    type LayerSpecification,
-    type LngLatBoundsLike,
-    type LngLatLike,
-    type SourceSpecification,
-    type FitBoundsOptions,
+  import * as maplibregl from 'maplibre-gl';
+  import type {
+    CenterZoomBearing,
+    LayerSpecification,
+    LngLatBoundsLike,
+    LngLatLike,
+    SourceSpecification,
+    FitBoundsOptions,
   } from 'maplibre-gl';
   import compare from 'just-compare';
   import 'maplibre-gl/dist/maplibre-gl.css';
@@ -69,7 +70,7 @@
     locale?: any;
     interactive?: boolean;
     /** Set false to hide the default attribution control, so you can add your own. */
-    attributionControl?: false | maplibre.AttributionControlOptions;
+    attributionControl?: false | maplibregl.AttributionControlOptions;
     /** Set true to require hitting ⌘/Ctrl while scrolling to zoom. Or use two fingers on phones. */
     cooperativeGestures?: boolean;
     /** Set to true if you want to export the map as an image */
@@ -256,7 +257,7 @@
   function createMap(element: HTMLDivElement) {
     onHashChange();
 
-    map = mapContext.map = new maplibre.Map(
+    map = mapContext.map = new maplibregl.Map(
       flush({
         container: element,
         style,
@@ -282,7 +283,7 @@
         attributionControl,
         transformRequest,
         cooperativeGestures,
-        aroundCenter
+        aroundCenter,
       })
     );
 
