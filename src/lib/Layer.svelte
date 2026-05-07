@@ -291,7 +291,9 @@
           // maplibre-gl v6 strictly types setPaintProperty's (name, value) pair via
           // a generic over AllPaintProperties; the diff applier is intentionally
           // structural, so the value can be any element of the paint object.
-          const setPaint = map.setPaintProperty as (
+          // .bind preserves the Map receiver — setPaintProperty reads
+          // `this.style` internally.
+          const setPaint = map.setPaintProperty.bind(map) as (
             id: string,
             name: string,
             value: unknown
@@ -308,7 +310,7 @@
     layer.value
       ? diffApplier((key, value) => {
           if (!map) return;
-          const setLayout = map.setLayoutProperty as (
+          const setLayout = map.setLayoutProperty.bind(map) as (
             id: string,
             name: string,
             value: unknown
