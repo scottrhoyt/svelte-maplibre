@@ -370,14 +370,28 @@
         const mapStyle = map.getStyle();
         lastStyleLayerIds = mapStyle.layers.map((l) => l.id);
         lastStyleSourceIds = Object.keys(mapStyle.sources);
+        // Re-add idempotently. This handler can fire with some user sources/
+        // layers still present — e.g. a `setStyle` diff that throws partway
+        // (an `addSource` conflict for a DEM/terrain source the host app
+        // injects on every style.load) makes maplibre fall back to a full
+        // reload, but a plain `map.addSource(id)` on an already-present source
+        // throws "Source ... already exists" and aborts this whole handler
+        // *before* the layer loop — so the sources survive but every custom
+        // layer silently vanishes until a full page reload. Guard each add so
+        // a duplicate is skipped instead of throwing, and the layer re-add
+        // always runs.
         if (sourcesToReAddAfterStyleChange) {
           for (const [id, source] of Object.entries(sourcesToReAddAfterStyleChange)) {
-            map.addSource(id, source);
+            if (!map.getSource(id)) {
+              map.addSource(id, source);
+            }
           }
         }
         if (layersToReAddAfterStyleChange) {
           for (const layer of layersToReAddAfterStyleChange) {
-            map.addLayer(layer);
+            if (!map.getLayer(layer.id)) {
+              map.addLayer(layer);
+            }
           }
         }
 
