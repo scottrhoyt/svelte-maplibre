@@ -27,8 +27,15 @@
   $effect(() => {
     if (map && !control) {
       control = new maplibregl.GeolocateControl({
-        positionOptions,
-        fitBoundsOptions,
+        // MapLibre merges these over its own defaults with a `for...in` copy,
+        // which enumerates explicitly-undefined keys. Passing `key: undefined`
+        // therefore OVERWRITES the default rather than falling back to it —
+        // dropping fitBoundsOptions' `maxZoom: 15` (geolocate then fits the
+        // accuracy circle uncapped, slamming to the map's maxZoom) and
+        // positionOptions' `timeout: 6000` (a stuck fix waits forever). Only
+        // forward the optional keys the consumer actually set.
+        ...(positionOptions !== undefined && { positionOptions }),
+        ...(fitBoundsOptions !== undefined && { fitBoundsOptions }),
         trackUserLocation,
         showAccuracyCircle,
         showUserLocation,
