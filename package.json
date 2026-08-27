@@ -22,10 +22,10 @@
   ],
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && pnpm run package",
+    "build": "vite build && npm run package",
     "preview": "vite preview",
-    "package": "svelte-kit sync && svelte-package && publint",
-    "prepare": "husky && pnpm run package",
+    "package": "svelte-kit sync && svelte-package && publint --pack npm",
+    "prepare": "husky && npm run package",
     "test": "playwright test",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -78,7 +78,7 @@
     "dequal": "^2.0.3",
     "just-compare": "^2.3.0",
     "maplibre-gl": "^6.0.0",
-    "pmtiles": "^3.0.3"
+    "pmtiles": "^4.0.0"
   },
   "peerDependencies": {
     "@deck.gl/core": "^9",
