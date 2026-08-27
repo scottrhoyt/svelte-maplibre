@@ -1,6 +1,7 @@
 <script lang="ts" generics="FEATURE extends Feature = Feature">
   import * as maplibregl from 'maplibre-gl';
   import type { LngLatLike, PointLike } from 'maplibre-gl';
+  import { flush } from '$lib/flush.js';
   import type { Snippet } from 'svelte';
   import { Box, getMapContext, setLngLatContext, updatedMarkerContext } from './context.svelte.js';
   import type {
@@ -83,11 +84,16 @@
 
       marker.value = new maplibregl.Marker({
         element: node,
-        rotation,
-        draggable,
-        offset,
-        anchor,
-        opacity: opacity.toString(),
+        // Matches DefaultMarker: keep explicitly-undefined props from
+        // overwriting MapLibre's defaults. `element` stays outside the flush
+        // because it is what makes this a custom marker.
+        ...flush({
+          rotation,
+          draggable,
+          offset,
+          anchor,
+          opacity: opacity.toString(),
+        }),
       })
         .setLngLat(lngLat)
         .addTo(map!);

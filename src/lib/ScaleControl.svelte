@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getMapContext } from './context.svelte.js';
   import * as maplibregl from 'maplibre-gl';
+  import { flush } from '$lib/flush.js';
   import { onDestroy } from 'svelte';
 
   const { map, loaded } = $derived(getMapContext());
@@ -16,10 +17,16 @@
   let control: maplibregl.ScaleControl | undefined = $state();
   $effect(() => {
     if (map && !control) {
-      control = new maplibregl.ScaleControl({
-        maxWidth,
-        unit,
-      });
+      // An unset `maxWidth` would otherwise overwrite MapLibre's `100` default
+      // with `undefined`. That is currently harmless, because the scale is
+      // computed as `options?.maxWidth || 100`, but it only holds as long as
+      // that fallback stays in place.
+      control = new maplibregl.ScaleControl(
+        flush({
+          maxWidth,
+          unit,
+        })
+      );
       map.addControl(control, position);
     }
   });

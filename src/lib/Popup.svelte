@@ -2,6 +2,7 @@
   import type { Feature } from 'geojson';
   import * as maplibregl from 'maplibre-gl';
   import type { MapMouseEvent, MapLayerMouseEvent, MapLayerTouchEvent } from 'maplibre-gl';
+  import { flush } from '$lib/flush.js';
   import { onDestroy, onMount, type Snippet } from 'svelte';
   import {
     getMapContext,
@@ -321,17 +322,25 @@
   $effect(() => {
     if (!popup) {
       let fullPopupClass = popupClass ? `${popupClass} sv-maplibregl-popup` : 'sv-maplibregl-popup';
-      popup = new maplibregl.Popup({
-        closeButton: actualCloseButton,
-        // We handle this ourselves to improve behavior on mobile.
-        closeOnClick: false,
-        closeOnMove,
-        focusAfterOpen,
-        maxWidth,
-        className: fullPopupClass,
-        anchor,
-        offset,
-      });
+      // `maxWidth` and friends have to be flushed: MapLibre copies the options
+      // it is given over its defaults with a `for...in` loop, which enumerates
+      // keys that are explicitly `undefined`. An unset `maxWidth` would shadow
+      // MapLibre's `'240px'` default with `undefined`, and since the width is
+      // only applied when `options.maxWidth` is truthy, the popup would render
+      // with no width cap at all.
+      popup = new maplibregl.Popup(
+        flush({
+          closeButton: actualCloseButton,
+          // We handle this ourselves to improve behavior on mobile.
+          closeOnClick: false,
+          closeOnMove,
+          focusAfterOpen,
+          maxWidth,
+          className: fullPopupClass,
+          anchor,
+          offset,
+        })
+      );
 
       popupElement = popup.getElement();
 
