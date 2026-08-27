@@ -41,7 +41,7 @@
   }: Props = $props();
 
   if (url && url.includes('pmtiles://')) {
-    if (!Object.hasOwn(maplibregl.config.REGISTERED_PROTOCOLS.hasOwnProperty, 'pmtiles')) {
+    if (!Object.hasOwn(maplibregl.config.REGISTERED_PROTOCOLS, 'pmtiles')) {
       let protocol = new pmtiles.Protocol();
       maplibregl.addProtocol('pmtiles', protocol.tile);
     }
