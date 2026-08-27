@@ -381,14 +381,24 @@
         const mapStyle = map.getStyle();
         lastStyleLayerIds = mapStyle.layers.map((l) => l.id);
         lastStyleSourceIds = Object.keys(mapStyle.sources);
+        // Re-add idempotently: this handler can run while some of the tracked
+        // sources or layers are still on the map. `addSource` throws
+        // "Source ... already exists" for a source that is still present, and
+        // because that happens before the layer loop it takes the layer re-add
+        // down with it, leaving the map with its sources but none of its user
+        // layers until the page is reloaded.
         if (sourcesToReAddAfterStyleChange) {
           for (const [id, source] of Object.entries(sourcesToReAddAfterStyleChange)) {
-            map.addSource(id, source);
+            if (!map.getSource(id)) {
+              map.addSource(id, source);
+            }
           }
         }
         if (layersToReAddAfterStyleChange) {
           for (const layer of layersToReAddAfterStyleChange) {
-            map.addLayer(layer);
+            if (!map.getLayer(layer.id)) {
+              map.addLayer(layer);
+            }
           }
         }
 
