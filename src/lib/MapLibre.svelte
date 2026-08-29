@@ -469,6 +469,19 @@
         loaded = false;
         mapContext.loaded = false;
         map?.remove();
+        // Then drop every handle to it. `map.remove()` calls `setStyle(null)`,
+        // which DELETES `map.style` — the instance survives as an object whose
+        // methods throw on the next touch, so handing one to a consumer is
+        // worse than handing them nothing. `bind:map` in particular would
+        // otherwise be left pointing at it forever.
+        //
+        // Safe because every child effect — sources, layers, controls — is torn
+        // down BEFORE an action's destroy runs (measured, not assumed: a Layer's
+        // `onDestroy` still sees a live `map.style`). Nothing can observe these
+        // being cleared.
+        map = undefined;
+        boundMap = undefined;
+        mapContext.map = undefined;
       },
     };
   }
