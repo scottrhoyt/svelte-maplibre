@@ -121,7 +121,10 @@
   }
 
   let {
-    map = $bindable(undefined),
+    // BOUND ALIAS, NOT THE INSTANCE THIS COMPONENT USES. `map` below is the
+    // instance we own; this prop only mirrors it outward for `bind:map`. See
+    // the note on `let map` for why the two must not be the same binding.
+    map: boundMap = $bindable(undefined),
     mapContainer = $bindable(undefined),
     class: classNames = undefined,
     style,
@@ -189,6 +192,35 @@
 
   const mapContext = createMapContext();
   setLayerEvent(new Box(undefined));
+
+  /**
+   * The map instance this component owns.
+   *
+   * DELIBERATELY LOCAL `$state`, NOT THE `map` $bindable PROP — that shape is
+   * load-bearing, and losing it takes the whole map with it.
+   *
+   * Svelte implements a bindable prop that the component writes but the parent
+   * did not bind as a derived over the parent's getter: the local write is an
+   * override (`set(d, value)`) that survives only until that derived's
+   * dependencies invalidate, at which point it recomputes to the parent's value
+   * — or, with no binding, to the fallback. `map`'s fallback is `undefined`, so
+   * there is nothing to recover.
+   *
+   * Whether the derived has dependencies at all is decided by the CONSUMER's
+   * call site. Passing props one by one gives `props.map` no reactive read and
+   * the override stands forever, which is why this went unnoticed. But a SPREAD
+   * — `<MapLibre {...cond ? { bounds } : {}} />` — makes every key read on the
+   * props object, including keys the parent never passed, depend on the spread
+   * source. One `bounds` change then resets `map` to undefined, `{#if map}`
+   * unmounts every source, layer and control, and `createMap` is a mount-time
+   * action that never runs again: the canvas keeps painting the basemap and
+   * everything mounted on it is gone for good.
+   *
+   * Keeping the instance out of the prop makes that unreachable regardless of
+   * how a consumer spells its props. `boundMap` is still assigned synchronously
+   * in `createMap`, so `bind:map` lands at exactly the moment it always did.
+   */
+  let map = $state<maplibregl.Map | undefined>(undefined);
 
   let loadingImages = $state(new Set());
   async function loadImage(image: CustomImageSpec, force = false) {
@@ -263,7 +295,7 @@
   function createMap(element: HTMLDivElement) {
     onHashChange();
 
-    map = mapContext.map = new maplibregl.Map({
+    map = boundMap = mapContext.map = new maplibregl.Map({
       ...flush({
         container: element,
         style,
