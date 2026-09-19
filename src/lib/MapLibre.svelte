@@ -292,43 +292,74 @@
     }
   }
 
+  // A map that could not be created at all. Surfaced where an uncaught throw
+  // would have been seen — the window's `error` event, which is what error
+  // trackers listen on — without unwinding the hydration that is mounting us, and
+  // handed to `onerror` too for a host that wants to react. Deliberately not
+  // `handleError`'s `console.error` default: nothing captures a console line, and
+  // a map that can never render is not a transient source error.
+  function reportCreateFailure(error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    onerror?.({ error: err });
+    if (typeof reportError === 'function') {
+      reportError(err);
+    } else {
+      console.error(err);
+    }
+  }
+
   function createMap(element: HTMLDivElement) {
     onHashChange();
 
-    map = boundMap = mapContext.map = new maplibregl.Map({
-      ...flush({
-        container: element,
-        style,
-        locale,
-        center,
-        zoom,
-        pitch,
-        bearing,
-        bearingSnap,
-        minZoom,
-        maxZoom,
-        minPitch,
-        maxPitch,
-        renderWorldCopies,
-        dragPan,
-        dragRotate,
-        pitchWithRotate,
-        antialias,
-        interactive,
-        preserveDrawingBuffer,
-        maxBounds,
-        bounds,
-        attributionControl,
-        transformRequest,
-        cooperativeGestures,
-        aroundCenter,
-      }),
-      // MapLibre tells "absent" (overscale 4 levels) apart from an explicit `undefined`
-      // (overscale everything), and `flush` drops both, so this is applied outside it.
-      ...(zoomLevelsToOverscale === undefined
-        ? {}
-        : { zoomLevelsToOverscale: zoomLevelsToOverscale ?? undefined }),
-    });
+    // maplibre-gl >= 6.7 THROWS from the constructor when it cannot create a
+    // WebGL2 context (`GPUInitializationError`, maplibre-gl-js#8066); before, it
+    // fired `error` and returned a half-built map. This action runs inside the
+    // host's hydration, so a throw that escapes it aborts that hydration: the page
+    // is left as inert server HTML — no client handlers, no client routing — which
+    // is far worse than a missing map. Catch it, leave `map` unset so nothing
+    // below mounts against it, and report it (see `reportCreateFailure`).
+    try {
+      map =
+        boundMap =
+        mapContext.map =
+          new maplibregl.Map({
+            ...flush({
+              container: element,
+              style,
+              locale,
+              center,
+              zoom,
+              pitch,
+              bearing,
+              bearingSnap,
+              minZoom,
+              maxZoom,
+              minPitch,
+              maxPitch,
+              renderWorldCopies,
+              dragPan,
+              dragRotate,
+              pitchWithRotate,
+              antialias,
+              interactive,
+              preserveDrawingBuffer,
+              maxBounds,
+              bounds,
+              attributionControl,
+              transformRequest,
+              cooperativeGestures,
+              aroundCenter,
+            }),
+            // MapLibre tells "absent" (overscale 4 levels) apart from an explicit `undefined`
+            // (overscale everything), and `flush` drops both, so this is applied outside it.
+            ...(zoomLevelsToOverscale === undefined
+              ? {}
+              : { zoomLevelsToOverscale: zoomLevelsToOverscale ?? undefined }),
+          });
+    } catch (error) {
+      reportCreateFailure(error);
+      return;
+    }
 
     map.on('load', (e) => {
       e.target.getContainer().setAttribute('data-testid', 'map');
